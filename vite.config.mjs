@@ -9,6 +9,26 @@ export default defineConfig({
   build: {
     outDir: "build",
     chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // TF.js core — largest chunk, changes rarely, cache aggressively
+          tfjs: [
+            "@tensorflow/tfjs",
+          ],
+          // Firebase SDK
+          firebase: [
+            "firebase/app",
+            "firebase/firestore",
+            "firebase/storage",
+          ],
+          // React ecosystem
+          react: ["react", "react-dom", "react-router-dom"],
+          // UI utilities
+          vendor: ["lucide-react", "date-fns", "uuid", "clsx", "tailwind-merge"],
+        },
+      },
+    },
   },
   plugins: [tsconfigPaths(), react()],
   server: {
