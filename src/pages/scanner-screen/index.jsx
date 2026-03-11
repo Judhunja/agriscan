@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import BottomTabNavigation from "components/ui/BottomTabNavigation";
 import OfflineStatusBanner from "components/ui/OfflineStatusBanner";
 import LanguageToggle from "components/ui/LanguageToggle";
@@ -6,118 +7,9 @@ import Icon from "components/AppIcon";
 import CameraCapture from "./components/CameraCapture";
 import ImagePreview from "./components/ImagePreview";
 import AnalysisResults from "./components/AnalysisResults";
-
-/* ─── Mock Disease Database ─── */
-const DISEASE_DB = {
-  en: [
-    {
-      disease: "Maize Streak Virus (MSV)",
-      confidence: 0.91,
-      treatment: [
-        "Remove and destroy all infected plants immediately to prevent spread.",
-        "Apply systemic insecticide (Imidacloprid 200 SL) to control leafhopper vectors.",
-        "Plant resistant maize varieties such as WEMA or H614D in next season.",
-        "Maintain field hygiene by removing crop residues after harvest.",
-        "Consult your local agricultural extension officer for further guidance.",
-      ],
-    },
-    {
-      disease: "Coffee Leaf Rust (Hemileia vastatrix)",
-      confidence: 0.87,
-      treatment: [
-        "Apply copper-based fungicide (Copper Oxychloride 50 WP) every 14 days.",
-        "Prune heavily infected branches and dispose of them away from the farm.",
-        "Improve air circulation by thinning shade trees around coffee plants.",
-        "Avoid overhead irrigation to reduce leaf wetness duration.",
-        "Monitor plants weekly and record infection progress for better management.",
-      ],
-    },
-    {
-      disease: "Maize Gray Leaf Spot",
-      confidence: 0.78,
-      treatment: [
-        "Apply foliar fungicide (Mancozeb 80 WP) at first sign of infection.",
-        "Rotate crops — avoid planting maize in the same field consecutively.",
-        "Use certified disease-free seeds from reputable agro-dealers.",
-        "Ensure proper plant spacing (75cm x 25cm) for adequate air circulation.",
-        "Collect and burn infected crop debris after harvest.",
-      ],
-    },
-    {
-      disease: "Healthy Crop — No Disease Detected",
-      confidence: 0.95,
-      treatment: [
-        "Your crop appears healthy. Continue regular monitoring every 7 days.",
-        "Maintain balanced fertilization using DAP at planting and CAN top-dressing.",
-        "Ensure consistent irrigation especially during dry spells.",
-        "Keep field free of weeds that may harbor pests and diseases.",
-      ],
-    },
-  ],
-  sw: [
-    {
-      disease: "Virusi vya Maize Streak (MSV)",
-      confidence: 0.91,
-      treatment: [
-        "Ondoa na uharibu mimea yote iliyoambukizwa mara moja kuzuia kuenea.",
-        "Tumia dawa ya kuua wadudu (Imidacloprid 200 SL) kudhibiti wadudu wanaoeneza ugonjwa.",
-        "Panda aina za mahindi zinazostahimili kama WEMA au H614D msimu ujao.",
-        "Dumisha usafi wa shamba kwa kuondoa mabaki ya mazao baada ya mavuno.",
-        "Wasiliana na afisa wa kilimo wa eneo lako kwa mwongozo zaidi.",
-      ],
-    },
-    {
-      disease: "Kutu ya Majani ya Kahawa (Hemileia vastatrix)",
-      confidence: 0.87,
-      treatment: [
-        "Tumia dawa ya ukungu yenye shaba (Copper Oxychloride 50 WP) kila siku 14.",
-        "Kata matawi yaliyoambukizwa sana na yatupe mbali na shamba.",
-        "Boresha mzunguko wa hewa kwa kupunguza miti ya kivuli karibu na kahawa.",
-        "Epuka umwagiliaji wa juu ili kupunguza unyevu wa majani.",
-        "Angalia mimea kila wiki na rekodi maendeleo ya ugonjwa.",
-      ],
-    },
-    {
-      disease: "Madoa ya Kijivu ya Mahindi",
-      confidence: 0.78,
-      treatment: [
-        "Tumia dawa ya ukungu (Mancozeb 80 WP) mara ugonjwa unapoonekana kwanza.",
-        "Zungusha mazao — epuka kupanda mahindi shambani moja mfululizo.",
-        "Tumia mbegu zilizoidhinishwa bila magonjwa kutoka kwa wafanyabiashara wa kilimo.",
-        "Hakikisha nafasi sahihi ya kupanda (75cm x 25cm) kwa mzunguko wa hewa.",
-        "Kusanya na kuchoma mabaki ya mazao yaliyoambukizwa baada ya mavuno.",
-      ],
-    },
-    {
-      disease: "Zao Zuri — Hakuna Ugonjwa Uliogunduliwa",
-      confidence: 0.95,
-      treatment: [
-        "Zao lako linaonekana kuwa na afya. Endelea kufuatilia kila siku 7.",
-        "Dumisha mbolea ya usawa ukitumia DAP wakati wa kupanda na CAN ya juu.",
-        "Hakikisha umwagiliaji wa kutosha hasa wakati wa ukame.",
-        "Weka shamba bila magugu ambayo yanaweza kuhifadhi wadudu na magonjwa.",
-      ],
-    },
-  ],
-};
-
-/* ─── Mock analyzeImage function ─── */
-const analyzeImage = (imageElement, lang = "en") => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const db = DISEASE_DB[lang] || DISEASE_DB.en;
-      const result = db[Math.floor(Math.random() * db.length)];
-      resolve(result);
-    }, 2200);
-  });
-};
-
-/* ─── Mock DB save ─── */
-const saveToAgriScanDB = (record) => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve({ id: Date.now(), ...record }), 800);
-  });
-};
+import { uploadImageToStorage, saveScanHistory, updateScanImageUrl, submitFeedback } from "../../services/firebaseService";
+import tfjsService from "../../services/tfjsService";
+import { getTreatmentFromGemini } from "../../services/geminiService";
 
 const ScannerScreen = () => {
   const [language, setLanguage] = useState("en");
@@ -128,7 +20,25 @@ const ScannerScreen = () => {
   const [result, setResult] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(true);
+  const [feedback, setFeedback] = useState(null);
+  const [savedDocId, setSavedDocId] = useState(null);
   const canvasRef = useRef(null);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const initModel = async () => {
+      try {
+        await tfjsService.loadModel();
+      } catch (err) {
+        console.error("Failed to load model:", err);
+      } finally {
+        setIsModelLoading(false);
+      }
+    };
+    initModel();
+  }, []);
 
   const handleLanguageChange = (lang) => {
     setLanguage(lang);
@@ -152,11 +62,29 @@ const ScannerScreen = () => {
 
     setIsAnalyzing(true);
     try {
-      const analysisResult = await analyzeImage(imgEl, language);
+      const analysisResult = await tfjsService.predict(imgEl, language);
       setResult(analysisResult);
+      setIsAnalyzing(false);
+
+      // Enrich treatment plan via Gemini in the background
+      setIsEnriching(true);
+      try {
+        const enriched = await getTreatmentFromGemini(
+          analysisResult._rawClass || analysisResult.disease,
+          analysisResult.confidence,
+          language
+        );
+        // enriched is null when API key is not configured — keep local treatment
+        if (enriched) {
+          setResult((prev) => prev ? { ...prev, treatment: enriched.treatment, disease: enriched.disease } : prev);
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini enrichment failed, keeping model result:", geminiErr);
+      } finally {
+        setIsEnriching(false);
+      }
     } catch (err) {
       console.error("Analysis error:", err);
-    } finally {
       setIsAnalyzing(false);
     }
   }, [language]);
@@ -167,26 +95,45 @@ const ScannerScreen = () => {
     setCapturedFile(null);
     setResult(null);
     setIsSaved(false);
+    setFeedback(null);
+    setSavedDocId(null);
   };
 
   const handleSave = async () => {
     if (!result || isSaved) return;
     setIsSaving(true);
     try {
-      await saveToAgriScanDB({
-        imageBlob: capturedFile,
-        imageSrc,
+      // 1. Save scan result to Firestore immediately (fast) — no image URL yet
+      const docId = await saveScanHistory({
+        imageUrl: null,
         disease: result?.disease,
         treatment: result?.treatment,
         confidence: result?.confidence,
-        timestamp: new Date()?.toISOString(),
-        feedbackSynced: false,
       });
+
+      setSavedDocId(docId);
+      // Mark as saved right away so the UI stops spinning
       setIsSaved(true);
+      setIsSaving(false);
+
+      // 2. Upload image in background (queues to localStorage if offline)
+      if (capturedFile && docId) {
+        uploadImageToStorage(capturedFile, docId)
+          .then((imageUrl) => {
+            if (imageUrl) updateScanImageUrl(docId, imageUrl);
+          })
+          .catch((err) => console.warn("Background image upload failed:", err));
+      }
     } catch (err) {
       console.error("Save error:", err);
-    } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleFeedback = async (feedbackValue) => {
+    setFeedback(feedbackValue);
+    if (savedDocId) {
+      await submitFeedback(savedDocId, feedbackValue);
     }
   };
 
@@ -196,14 +143,20 @@ const ScannerScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)] flex flex-col">
+    <div className="min-h-screen scan-hero flex flex-col">
       {/* Offline Banner */}
       <OfflineStatusBanner language={language} />
       {/* Header */}
-      <header className="sticky top-0 z-[var(--z-navigation)] bg-[var(--color-card)] border-b border-[var(--color-border)] shadow-[var(--shadow-sm)]">
+      <header className="app-header sticky top-0 z-[var(--z-navigation)]">
         <div className="max-w-2xl mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+            <button
+              onClick={() => imageSrc ? handleRetake() : navigate(-1)}
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--color-muted)] transition-colors"
+              aria-label="Go back">
+              <Icon name="ArrowLeft" size={20} color="var(--color-foreground)" />
+            </button>
+            <div className="logo-pill w-8 h-8 rounded-lg flex items-center justify-center">
               <Icon name="Leaf" size={18} color="white" strokeWidth={2} />
             </div>
             <span className="text-lg font-bold text-[var(--color-foreground)] font-[var(--font-heading)]">
@@ -219,7 +172,14 @@ const ScannerScreen = () => {
           {/* Hidden Canvas */}
           <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
 
-          {!imageSrc ? (
+          {isModelLoading ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center h-[50vh]">
+              <div className="w-12 h-12 border-4 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-[var(--color-foreground)] font-medium">
+                {language === 'sw' ? 'Inapakia Model ya AI...' : 'Loading AI Model...'}
+              </p>
+            </div>
+          ) : !imageSrc ? (
             <CameraCapture
               language={language}
               onImageCapture={handleImageCapture}
@@ -240,6 +200,9 @@ const ScannerScreen = () => {
                   onSave={handleSave}
                   isSaved={isSaved}
                   isSaving={isSaving}
+                  isEnriching={isEnriching}
+                  feedback={feedback}
+                  onFeedback={handleFeedback}
                 />
               )}
             </div>

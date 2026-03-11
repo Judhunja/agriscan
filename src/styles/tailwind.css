@@ -8,43 +8,43 @@
 @tailwind utilities;
 
 :root {
-  /* Core Colors */
-  --color-primary: #2D7D32;           /* green-800 */
-  --color-primary-foreground: #FFFFFF; /* white */
+  /* Core Colors — rich agricultural greens */
+  --color-primary: #1B6E2A;           /* deep forest green */
+  --color-primary-foreground: #FFFFFF;
 
-  --color-secondary: #558B2F;          /* lime-800 */
-  --color-secondary-foreground: #FFFFFF; /* white */
+  --color-secondary: #2E8540;          /* mid green */
+  --color-secondary-foreground: #FFFFFF;
 
-  --color-accent: #FF8F00;             /* amber-700 */
-  --color-accent-foreground: #000000;  /* black */
+  --color-accent: #E8760A;             /* warm amber */
+  --color-accent-foreground: #FFFFFF;
 
-  --color-background: #FAFAF9;         /* warm-gray-50 */
-  --color-foreground: #1C1B1F;         /* gray-900 */
+  --color-background: #F3F8F3;         /* very light green-white */
+  --color-foreground: #1A1F1A;         /* near-black with green tint */
 
-  --color-card: #FFFFFF;               /* white */
-  --color-card-foreground: #1C1B1F;    /* gray-900 */
+  --color-card: #FFFFFF;
+  --color-card-foreground: #1A1F1A;
 
-  --color-popover: #FFFFFF;            /* white */
-  --color-popover-foreground: #1C1B1F; /* gray-900 */
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: #1A1F1A;
 
-  --color-muted: #F3F2F0;              /* gray-100 */
-  --color-muted-foreground: #49454F;   /* gray-600 */
+  --color-muted: #E8F0E8;              /* light green-gray */
+  --color-muted-foreground: #4A5E4A;   /* medium green-gray */
 
-  --color-border: rgba(45, 125, 50, 0.15); /* primary/15 */
-  --color-input: #FFFFFF;              /* white */
-  --color-ring: #2D7D32;               /* green-800 */
+  --color-border: rgba(27, 110, 42, 0.14);
+  --color-input: #FFFFFF;
+  --color-ring: #1B6E2A;
 
-  --color-success: #388E3C;            /* green-700 */
-  --color-success-foreground: #FFFFFF; /* white */
+  --color-success: #1B6E2A;
+  --color-success-foreground: #FFFFFF;
 
-  --color-warning: #F57C00;            /* orange-700 */
-  --color-warning-foreground: #000000; /* black */
+  --color-warning: #C96A00;
+  --color-warning-foreground: #FFFFFF;
 
-  --color-error: #D32F2F;              /* red-700 */
-  --color-error-foreground: #FFFFFF;   /* white */
+  --color-error: #C0392B;
+  --color-error-foreground: #FFFFFF;
 
-  --color-destructive: #D32F2F;        /* red-700 */
-  --color-destructive-foreground: #FFFFFF; /* white */
+  --color-destructive: #C0392B;
+  --color-destructive-foreground: #FFFFFF;
 
   /* Typography */
   --font-heading: 'Nunito Sans', sans-serif;
@@ -379,4 +379,148 @@ h1, h2, h3, h4, h5, h6 {
 /* Content area padding for bottom nav */
 .content-with-bottom-nav {
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 16px);
+}
+
+/* ── Visual Polish Utilities ─────────────────────────────────────────────── */
+
+/* Header with subtle green gradient & bottom accent */
+.app-header {
+  background: linear-gradient(135deg, #ffffff 0%, #f6fbf6 100%);
+  border-bottom: 2px solid var(--color-border);
+  box-shadow: 0 2px 12px rgba(27, 110, 42, 0.07);
+}
+
+/* App logo pill */
+.logo-pill {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  box-shadow: 0 2px 8px rgba(27, 110, 42, 0.35);
+}
+
+/* Primary gradient button */
+.btn-gradient {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  box-shadow: 0 3px 10px rgba(27, 110, 42, 0.28);
+  transition: box-shadow var(--transition-base), transform var(--transition-base), opacity var(--transition-base);
+}
+.btn-gradient:hover:not(:disabled) {
+  box-shadow: 0 5px 16px rgba(27, 110, 42, 0.38);
+  transform: translateY(-1px);
+}
+.btn-gradient:active:not(:disabled) {
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(27, 110, 42, 0.22);
+}
+
+/* Scan card left-border accent */
+.scan-card {
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.scan-card:hover {
+  box-shadow: 0 4px 16px rgba(27, 110, 42, 0.12);
+  transform: translateY(-1px);
+}
+.scan-card-high  { border-left: 3px solid var(--color-success); }
+.scan-card-medium{ border-left: 3px solid var(--color-warning); }
+.scan-card-low   { border-left: 3px solid var(--color-error); }
+
+/* Camera capture area */
+.camera-zone {
+  background: linear-gradient(160deg, #f0f8f0 0%, #e8f4e8 100%);
+  border: 2px dashed rgba(27, 110, 42, 0.35);
+  transition: background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.camera-zone:hover, .camera-zone:focus-within {
+  background: linear-gradient(160deg, #e4f4e4 0%, #d8efd8 100%);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(27, 110, 42, 0.08);
+}
+
+/* Camera icon ring with pulse */
+.camera-icon-ring {
+  background: linear-gradient(135deg, rgba(27,110,42,0.14) 0%, rgba(46,133,64,0.14) 100%);
+  border: 2px solid rgba(27, 110, 42, 0.2);
+}
+
+/* Confidence bar gradient */
+.confidence-bar-high   { background: linear-gradient(90deg, #1B6E2A, #2E8540); }
+.confidence-bar-medium { background: linear-gradient(90deg, #C96A00, #E8760A); }
+.confidence-bar-low    { background: linear-gradient(90deg, #C0392B, #E74C3C); }
+
+/* Treatment step numbered badge */
+.step-badge {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  box-shadow: 0 2px 6px rgba(27, 110, 42, 0.3);
+}
+
+/* Results section green tint card */
+.results-treatment-card {
+  background: linear-gradient(160deg, rgba(27,110,42,0.05) 0%, rgba(46,133,64,0.08) 100%);
+  border: 1px solid rgba(27, 110, 42, 0.18);
+}
+
+/* Feedback button styles */
+.feedback-btn-yes {
+  background: rgba(27, 110, 42, 0.08);
+  border: 1.5px solid rgba(27, 110, 42, 0.22);
+  color: var(--color-success);
+  transition: all var(--transition-base);
+}
+.feedback-btn-yes:hover {
+  background: rgba(27, 110, 42, 0.16);
+  border-color: var(--color-primary);
+}
+.feedback-btn-no {
+  background: rgba(192, 57, 43, 0.08);
+  border: 1.5px solid rgba(192, 57, 43, 0.22);
+  color: var(--color-error);
+  transition: all var(--transition-base);
+}
+.feedback-btn-no:hover {
+  background: rgba(192, 57, 43, 0.16);
+  border-color: var(--color-error);
+}
+.feedback-btn-active-yes {
+  background: rgba(27, 110, 42, 0.15);
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+.feedback-btn-active-no {
+  background: rgba(192, 57, 43, 0.15);
+  border-color: var(--color-error);
+  font-weight: 600;
+}
+
+/* Stats bar card */
+.stat-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f6fbf6 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 1px 4px rgba(27, 110, 42, 0.07);
+}
+
+/* Tip box */
+.tip-box {
+  background: linear-gradient(135deg, rgba(232,118,10,0.08) 0%, rgba(232,118,10,0.05) 100%);
+  border: 1px solid rgba(232, 118, 10, 0.25);
+  border-radius: var(--radius-md);
+}
+
+/* Model loading spinner ring */
+.spinner-ring {
+  border-color: rgba(27, 110, 42, 0.15);
+  border-top-color: var(--color-primary);
+}
+
+/* Bottom nav active pill */
+.bottom-nav-item.active .bottom-nav-icon-wrap {
+  background: linear-gradient(135deg, rgba(27,110,42,0.14) 0%, rgba(46,133,64,0.14) 100%);
+  border: 1px solid rgba(27, 110, 42, 0.18);
+}
+
+/* Scan hero background pattern (camera screen) */
+.scan-hero {
+  background:
+    radial-gradient(ellipse at 70% 20%, rgba(27,110,42,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 80%, rgba(46,133,64,0.05) 0%, transparent 50%),
+    var(--color-background);
 }

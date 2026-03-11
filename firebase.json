@@ -1,0 +1,9 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "bucket": "agriscan-8be1e.firebasestorage.app",
+    "rules": "storage.rules"
+  }
+}

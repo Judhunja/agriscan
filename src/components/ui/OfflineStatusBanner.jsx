@@ -1,24 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Icon from 'components/AppIcon';
+import { getPendingCount } from '../../utils/offlineQueue';
+import { syncPendingImages } from '../../services/firebaseService';
 
 const OfflineStatusBanner = ({ language = 'en' }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const [showOnlineBanner, setShowOnlineBanner] = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(() => getPendingCount());
 
   const MESSAGES = {
     en: {
-      offline: 'No internet connection — working offline',
-      online: 'Back online — syncing data',
-      syncing: 'Syncing scan results…',
-      pending: (n) => `${n} scan${n > 1 ? 's' : ''} pending sync`,
+      offline: 'No internet — working offline. Scans are saved locally.',
+      online: 'Back online',
+      syncing: 'Syncing scan data…',
+      pending: (n) => `${n} image${n > 1 ? 's' : ''} will sync when online`,
+      synced: (n) => `Synced ${n} pending image${n > 1 ? 's' : ''}`,
     },
     sw: {
-      offline: 'Hakuna mtandao — inafanya kazi nje ya mtandao',
-      online: 'Mtandao umepatikana — inasawazisha data',
-      syncing: 'Inasawazisha matokeo ya uchunguzi…',
-      pending: (n) => `Uchunguzi ${n} unasubiri kusawazishwa`,
+      offline: 'Hakuna mtandao — inafanya kazi nje ya mtandao. Uchunguzi umehifadhiwa.',
+      online: 'Mtandao umepatikana',
+      syncing: 'Inasawazisha data ya uchunguzi…',
+      pending: (n) => `Picha ${n} zitasawazishwa ukiwa mtandaoni`,
+      synced: (n) => `Picha ${n} zimesawazishwa`,
     },
   };
 
@@ -28,25 +32,26 @@ const OfflineStatusBanner = ({ language = 'en' }) => {
     setIsOnline(true);
     setShowOnlineBanner(true);
     setIsSyncing(true);
-    // Simulate sync completion
-    const syncTimer = setTimeout(() => {
-      setIsSyncing(false);
-      setPendingCount(0);
-    }, 3000);
-    // Hide online banner after sync
-    const hideTimer = setTimeout(() => {
-      setShowOnlineBanner(false);
-    }, 5000);
-    return () => {
-      clearTimeout(syncTimer);
-      clearTimeout(hideTimer);
-    };
+
+    // Sync any queued images in the background
+    syncPendingImages()
+      .then((synced) => {
+        setPendingCount(getPendingCount());
+        setIsSyncing(false);
+        // Hide banner after a short delay
+        setTimeout(() => setShowOnlineBanner(false), 4000);
+      })
+      .catch(() => {
+        setIsSyncing(false);
+        setTimeout(() => setShowOnlineBanner(false), 4000);
+      });
   }, []);
 
   const handleOffline = useCallback(() => {
     setIsOnline(false);
     setShowOnlineBanner(false);
     setIsSyncing(false);
+    setPendingCount(getPendingCount());
   }, []);
 
   useEffect(() => {
@@ -57,6 +62,14 @@ const OfflineStatusBanner = ({ language = 'en' }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, [handleOnline, handleOffline]);
+
+  // Refresh pending count periodically when offline
+  useEffect(() => {
+    if (!isOnline) {
+      const interval = setInterval(() => setPendingCount(getPendingCount()), 5000);
+      return () => clearInterval(interval);
+    }
+  }, [isOnline]);
 
   // Don't render when online and banner dismissed
   if (isOnline && !showOnlineBanner) return null;

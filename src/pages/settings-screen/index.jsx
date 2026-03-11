@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BottomTabNavigation from 'components/ui/BottomTabNavigation';
 import OfflineStatusBanner from 'components/ui/OfflineStatusBanner';
 import Icon from 'components/AppIcon';
@@ -133,6 +134,7 @@ const SettingsScreen = () => {
   }, []);
 
   const t = TRANSLATIONS?.[language] || TRANSLATIONS?.en;
+  const navigate = useNavigate();
 
   const handleClearData = () => {
     setScanCount(0);
@@ -142,9 +144,15 @@ const SettingsScreen = () => {
     <div className="min-h-screen bg-[var(--color-background)] flex flex-col">
       <OfflineStatusBanner language={language} />
       {/* Header */}
-      <header className="sticky top-0 z-[var(--z-navigation)] bg-[var(--color-card)] border-b border-[var(--color-border)] shadow-[var(--shadow-sm)]">
+      <header className="app-header sticky top-0 z-[var(--z-navigation)]">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8 h-14 md:h-16 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[var(--color-muted)] transition-colors"
+            aria-label="Go back">
+            <Icon name="ArrowLeft" size={20} color="var(--color-foreground)" />
+          </button>
+          <div className="logo-pill w-8 h-8 rounded-[var(--radius-sm)] flex items-center justify-center flex-shrink-0">
             <Icon name="Leaf" size={18} color="white" />
           </div>
           <div className="flex-1 min-w-0">

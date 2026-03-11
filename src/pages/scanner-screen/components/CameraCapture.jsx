@@ -8,17 +8,19 @@ const CameraCapture = ({ language, onImageCapture, isAnalyzing }) => {
   const labels = {
     en: {
       title: "Scan Your Crop",
-      subtitle: "Take a photo of your crop to identify diseases instantly",
+      subtitle: "Point your camera at affected leaves for instant disease detection",
       takePhoto: "Take Photo",
       uploadPhoto: "Upload from Gallery",
-      tip: "Tip: Get close to the affected leaves for better results",
+      tip: "Tip: Get close to affected leaves — clear focus gives better results.",
+      offline: "Works offline — AI model runs on your device",
     },
     sw: {
       title: "Changanua Mazao Yako",
-      subtitle: "Piga picha ya mazao yako kutambua magonjwa mara moja",
+      subtitle: "Elekeza kamera kwenye majani yaliyoathirika kwa utambuzi wa haraka",
       takePhoto: "Piga Picha",
       uploadPhoto: "Pakia kutoka Galari",
-      tip: "Kidokezo: Karibia majani yaliyoathirika kwa matokeo bora",
+      tip: "Kidokezo: Karibia majani yaliyoathirika — picha wazi inatoa matokeo bora.",
+      offline: "Inafanya kazi nje ya mtandao — mfano wa AI unafanya kazi kwenye kifaa chako",
     },
   };
 
@@ -38,32 +40,41 @@ const CameraCapture = ({ language, onImageCapture, isAnalyzing }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 md:gap-6">
+    <div className="flex flex-col items-center gap-5 md:gap-6">
+      {/* Title */}
       <div className="text-center">
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-[var(--color-foreground)] font-[var(--font-heading)]">
+        <h2 className="text-2xl md:text-3xl font-bold text-[var(--color-foreground)] font-[var(--font-heading)] tracking-tight">
           {t?.title}
         </h2>
-        <p className="text-sm md:text-base text-[var(--color-muted-foreground)] mt-1 max-w-sm mx-auto">
+        <p className="text-sm md:text-base text-[var(--color-muted-foreground)] mt-1.5 max-w-xs mx-auto leading-relaxed">
           {t?.subtitle}
         </p>
       </div>
-      {/* Camera Icon Area */}
+
+      {/* Camera Zone */}
       <div
-        className="w-full max-w-sm md:max-w-md aspect-square rounded-2xl border-2 border-dashed border-[var(--color-primary)] bg-[var(--color-muted)] flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-[rgba(45,125,50,0.05)] transition-all"
+        className="camera-zone w-full max-w-sm md:max-w-md aspect-square rounded-3xl flex flex-col items-center justify-center gap-5 cursor-pointer select-none"
         onClick={() => fileInputRef?.current?.click()}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => e?.key === "Enter" && fileInputRef?.current?.click()}
         aria-label={t?.takePhoto}
       >
-        <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[rgba(45,125,50,0.12)] flex items-center justify-center">
-          <Icon name="Camera" size={40} color="var(--color-primary)" strokeWidth={1.5} />
+        {/* Camera icon with ring */}
+        <div className="camera-icon-ring w-24 h-24 md:w-28 md:h-28 rounded-full flex items-center justify-center">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center">
+            <Icon name="Camera" size={38} color="var(--color-primary)" strokeWidth={1.5} />
+          </div>
         </div>
-        <p className="text-[var(--color-primary)] font-semibold text-base md:text-lg">
-          {t?.takePhoto}
-        </p>
+        <div className="text-center px-4">
+          <p className="text-[var(--color-primary)] font-bold text-lg md:text-xl">
+            {t?.takePhoto}
+          </p>
+          <p className="text-xs text-[var(--color-muted-foreground)] mt-1">{t?.uploadPhoto}</p>
+        </div>
       </div>
-      {/* Hidden file input with camera capture */}
+
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -73,22 +84,29 @@ const CameraCapture = ({ language, onImageCapture, isAnalyzing }) => {
         onChange={handleFileChange}
         aria-label="Camera input for crop photo"
       />
-      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm md:max-w-md">
-        <Button
-          variant="default"
-          size="lg"
-          fullWidth
-          iconName="Camera"
-          iconPosition="left"
+
+      {/* Action Button */}
+      <div className="w-full max-w-sm md:max-w-md">
+        <button
           disabled={isAnalyzing}
           onClick={() => fileInputRef?.current?.click()}
+          className="btn-gradient w-full flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-white font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed"
         >
+          <Icon name="Camera" size={20} color="white" strokeWidth={2} />
           {t?.takePhoto}
-        </Button>
+        </button>
       </div>
-      <div className="flex items-start gap-2 bg-[rgba(255,143,0,0.1)] border border-[rgba(255,143,0,0.3)] rounded-xl px-4 py-3 max-w-sm md:max-w-md w-full">
+
+      {/* Tip box */}
+      <div className="tip-box flex items-start gap-2.5 px-4 py-3 max-w-sm md:max-w-md w-full">
         <Icon name="Lightbulb" size={18} color="var(--color-accent)" className="flex-shrink-0 mt-0.5" />
-        <p className="text-xs md:text-sm text-[var(--color-foreground)]">{t?.tip}</p>
+        <div>
+          <p className="text-xs md:text-sm text-[var(--color-foreground)] font-medium">{t?.tip}</p>
+          <p className="text-xs text-[var(--color-muted-foreground)] mt-1 flex items-center gap-1">
+            <Icon name="Wifi" size={11} color="var(--color-success)" />
+            {t?.offline}
+          </p>
+        </div>
       </div>
     </div>
   );
